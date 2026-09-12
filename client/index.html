@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VetCalc — Gestión Clínica</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>VetCalc — Gestión Clínica</h1>
+      <p class="lead">Ficha, biblioteca farmacológica, calculadoras y asistente IA (probar antes de usar clínicamente)</p>
+      <div class="warning">Aviso: Validar todas las dosis y planes con un veterinario responsable antes de administración.</div>
+    </header>
+
+    <nav class="tabs">
+      <button data-tab="paciente" class="active">Paciente</button>
+      <button data-tab="farmacos">Fármacos</button>
+      <button data-tab="recetas">Recetas / Plan</button>
+      <button data-tab="evolucion">Evolución</button>
+      <button data-tab="ia">Asistente IA</button>
+      <button data-tab="ajustes">Ajustes</button>
+    </nav>
+
+    <!-- PACIENTE -->
+    <section id="panel-paciente" class="panel tabpanel">
+      <h2>Ficha del paciente</h2>
+      <form id="patientForm">
+        <div class="row">
+          <label>Nombre
+            <input id="p_nombre" required />
+          </label>
+          <label>Especie
+            <select id="p_especie"><option>Perro</option><option>Gato</option><option>Equino</option><option>Bovino</option><option>Otro</option></select>
+          </label>
+          <label>Raza / Identificación
+            <input id="p_raza" />
+          </label>
+        </div>
+
+        <div class="row">
+          <label>Peso (kg)
+            <input id="p_peso" type="number" step="0.01" min="0" />
+          </label>
+          <label>Edad
+            <input id="p_edad" placeholder="ej. 3 años" />
+          </label>
+        </div>
+
+        <h3>Anamnesis</h3>
+        <textarea id="p_anamnesis" rows="4" placeholder="Motivo de consulta, antecedentes, síntomas..."></textarea>
+
+        <h3>Exploración / Exámenes</h3>
+        <textarea id="p_examenes" rows="3" placeholder="Signos clínicos, laboratorio, imágenes..."></textarea>
+
+        <h3>Diagnósticos diferenciales</h3>
+        <textarea id="p_diferenciales" rows="2" placeholder="Listado de diferenciales separados por comas"></textarea>
+
+        <div class="actions">
+          <button type="button" id="guardarPaciente">Guardar ficha</button>
+          <button type="button" id="cargarPaciente">Cargar última</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- FÁRMACOS -->
+    <section id="panel-farmacos" class="panel tabpanel hidden">
+      <h2>Biblioteca de fármacos</h2>
+
+      <div class="row">
+        <label>Buscar fármaco
+          <input id="buscarFarmaco" placeholder="Buscar por nombre, indicación o vía" />
+        </label>
+        <div class="column">
+          <button id="nuevoFarmacoBtn">Nuevo fármaco</button>
+          <button id="importFromAI">Buscar vía IA</button>
+        </div>
+      </div>
+
+      <ul id="farmacosList" class="farmacos-list"></ul>
+
+      <div id="farmacoEditor" class="panel small hidden">
+        <h3 id="farmacoEditorTitle">Editar fármaco</h3>
+        <label>Nombre<input id="f_nombre" /></label>
+        <label>Clase<input id="f_clase" /></label>
+        <label>Dosis típica (mg/kg)<input id="f_dosis_mgkg" /></label>
+        <label>Concentración (mg/mL)<input id="f_concentracion" /></label>
+        <label>Vías recomendadas<input id="f_vias" placeholder="IV, IM, SC, PO" /></label>
+        <label>Sitios de inyección / administración<textarea id="f_sitios" rows="2"></textarea></label>
+        <label>Vías contraindicadas / motivo<textarea id="f_contra" rows="2"></textarea></label>
+        <label>Indicaciones / patologías<textarea id="f_indicaciones" rows="2"></textarea></label>
+        <label>Farmacodinamia / Mecanismo<textarea id="f_farmacodinamia" rows="3"></textarea></label>
+
+        <div class="actions">
+          <button id="guardarFarmaco">Guardar fármaco</button>
+          <button id="cancelarFarmaco">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECETAS -->
+    <section id="panel-recetas" class="panel tabpanel hidden">
+      <h2>Plan de tratamiento / Receta</h2>
+
+      <div class="row">
+        <label>Seleccionar paciente
+          <select id="selectPaciente">
+            <option value="">-- ninguno --</option>
+          </select>
+        </label>
+
+        <label>Seleccionar fármaco
+          <select id="selectFarmaco"><option value="">-- seleccionar --</option></select>
+        </label>
+
+        <label>Vía
+          <input id="plan_via" />
+        </label>
+      </div>
+
+      <div class="row">
+        <label>Dosis calculada (mL)
+          <input id="plan_dosis_ml" readonly />
+        </label>
+        <label>Frecuencia
+          <input id="plan_frecuencia" placeholder="cada 12 h" />
+        </label>
+      </div>
+
+      <h3>Fluidoterapia</h3>
+      <div class="row">
+        <label>Tipo de cálculo
+          <select id="ft_tipo"><option value="mantenimiento">Mantenimiento</option><option value="deficit">Déficit</option><option value="bolo">Bolo</option></select>
+        </label>
+        <label>Valor (ml/kg o %)
+          <input id="ft_valor" placeholder="ej. 60 (ml/kg/día) o 8 (%)" />
+        </label>
+      </div>
+      <div class="actions">
+        <button id="calcularPlan">Calcular plan</button>
+        <button id="guardarPlan">Guardar receta</button>
+        <button id="imprimirReceta">Imprimir/Descargar</button>
+      </div>
+
+      <div id="planPreview" class="resultado"></div>
+      <ul id="recetasGuardadas" class="recetas-list"></ul>
+    </section>
+
+    <!-- EVOLUCIÓN -->
+    <section id="panel-evolucion" class="panel tabpanel hidden">
+      <h2>Registro de evolución</h2>
+      <label>Seleccionar paciente
+        <select id="evo_selectPaciente"><option value="">-- ninguno --</option></select>
+      </label>
+      <textarea id="evo_nota" rows="4" placeholder="Nota de evolución: estado, signos, respuesta al tratamiento..."></textarea>
+      <div class="actions">
+        <button id="evo_guardar">Agregar nota</button>
+      </div>
+      <ul id="evo_list" class="recetas-list"></ul>
+    </section>
+
+    <!-- ASISTENTE IA -->
+    <section id="panel-ia" class="panel tabpanel hidden">
+      <h2>Asistente IA — búsqueda de fármacos y diagnóstico</h2>
+      <p class="small">La IA sugiere diagnósticos diferenciales, preguntas y exámenes. Revisar y validar antes de importar.</p>
+
+      <h3>Búsqueda de fármaco</h3>
+      <div class="row">
+        <label>Nombre del fármaco
+          <input id="ia_nombre" placeholder="p. ej. amoxicilina" />
+        </label>
+        <label>Especie
+          <select id="ia_especie"><option>Perro</option><option>Gato</option><option>Equino</option><option>Bovino</option><option>Otro</option></select>
+        </label>
+        <div class="column">
+          <button id="ia_buscar">Buscar con IA</button>
+          <button id="ia_importar" disabled>Importar a biblioteca</button>
+        </div>
+      </div>
+
+      <h3>Diagnóstico diferencial (a partir de anamnesis/signos)</h3>
+      <label>Anamnesis / Historia
+        <textarea id="ia_anamnesis" rows="4"></textarea>
+      </label>
+      <label>Signos / Exploración
+        <textarea id="ia_signs" rows="3"></textarea>
+      </label>
+      <label>Exámenes (laboratorio / imágenes)
+        <textarea id="ia_exams" rows="2"></textarea>
+      </label>
+      <div class="actions">
+        <button id="ia_dx">Analizar con IA</button>
+        <button id="ia_import_dx" disabled>Importar diferenciales a ficha</button>
+        <button id="ia_generate_form" disabled>Crear formulario de preguntas</button>
+      </div>
+
+      <div id="ia_result" class="resultado">Resultados IA aparecerán aquí (JSON estructurado)</div>
+    </section>
+
+    <!-- AJUSTES -->
+    <section id="panel-ajustes" class="panel tabpanel hidden">
+      <h2>Ajustes / Conexión IA</h2>
+      <p class="small">Configura la URL del proxy servidor que hace la llamada a la IA (ej: http://localhost:3000)</p>
+      <label>API base URL
+        <input id="setting_api_base" placeholder="http://localhost:3000" />
+      </label>
+      <div class="actions">
+        <button id="saveSettings">Guardar ajustes</button>
+      </div>
+      <p class="small">Nota: Mantén tu OPENAI_API_KEY en el servidor (variable de entorno). No la pegues en el cliente.</p>
+    </section>
+
+    <footer class="footer">
+      <small>Prototipo — validar datos clínicos antes de usar en pacientes reales</small>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
